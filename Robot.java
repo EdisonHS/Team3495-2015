@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj.buttons.Button;
 public class Robot extends IterativeRobot {
 
 	private SmartDashboard display = new SmartDashboard();//DECLARATION FOR DISPLAY
+	private NetworkTable Kamerade = NetworkTable.getTable("SmartDashboard");
 	
 	private final Joystick lStick = new Joystick(0);//DECLARATIONS FOR JOYSTICKS, CHECK LAPTOP FOR PORT CORRELATION
 	private final Joystick rStick = new Joystick(1);
@@ -28,6 +29,11 @@ public class Robot extends IterativeRobot {
 	private Talon r1 = new Talon(2);
 	private Talon r2 = new Talon(3);
 	private Talon m1 = new Talon(4);
+	
+	private DoubleSolenoid DS1 = new DoubleSolenoid(1,2);//DECLARATION FOR THE DOUBLESOLENOIDS, 1ST IN PORTS 1 AND 2, 2ND IN PORTS 3 AND 4
+	private DoubleSolenoid DS2 = new DoubleSolenoid(3,4);
+	
+	private Compressor viceroyPumpy = new Compressor(1);//DECLARATION FOR THE COMPRESSOR, OUT OF RELAY 1
 	
 	private void tankDrive(double x, double y, double z)//BEGIN CUSTOM METHOD, TAKES 3 DOUBLES FOR PARAMETERS (LSTICK Y,RSTICK Y, LSTICK X)
 	{
@@ -47,12 +53,12 @@ public class Robot extends IterativeRobot {
 	}//END TANKDRIVE METHOD
 	
     public void robotInit() {
-
+    	viceroyPumpy.start();
     }//END ROBOT INIT
 
     public void autonomousPeriodic() {
-
     }//END AUTONOMOUS PERIODIC
+    
     public void autonomousInit()
     {
     	
