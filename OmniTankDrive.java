@@ -3,7 +3,7 @@ package org.usfirst.frc.team3495.robot;
 import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Timer;
 
-public class TankOmniDrive {
+public class OmniTankDrive {
 
 	private int leftSideTalonPort;
 	private int rightSideTalonPort;
@@ -12,7 +12,7 @@ public class TankOmniDrive {
 	private double strafeAccelerationModifier = 0;
 	private double strafeSpeed = 1;
 	
-	public TankOmniDrive(int pwmT1_2, int pwmT3_4, int pwmT5)
+	public OmniTankDrive(int pwmT1_2, int pwmT3_4, int pwmT5)
 	{
 		leftSideTalonPort = pwmT1_2;
 		rightSideTalonPort = pwmT3_4;
