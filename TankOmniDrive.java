@@ -103,6 +103,13 @@ public class TankOmniDrive {
 		}//END STRAFING WHEEL SETTING
 	}//END METHOD STANDARD DRIVE, DRIVING WITHOUT ANY ACCELERATION, BUT RAW VALUES SPEED MOD FOR STRAFE CIM
 	
+	public void axisDrive(double LSP, double RSP, double MSP)
+	{
+		l1_2.set(LSP);
+		r3_4.set(RSP);
+		if(MSP> .1){m1.set(MSP);}else{m1.set(0);}//END IF DECIDING TOLERANCE LEVEL
+	}//END METHOD AXIS DRIVE, USING THE RAW VALUE OF THE CONTROLLER AXIS FOR ALL MOTORS 
+	
 	public void increaseDriveAccelerationModifier()
 	{
 		if(driveAccelerationModifier < 1){driveAccelerationModifier += .01;}
