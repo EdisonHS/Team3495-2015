@@ -1,84 +1,181 @@
 
-package org.usfirst.frc.team3495.robot;
-
+package org.usfirst.frc.team3495.robot; 
+ 
+ 
+import edu.wpi.first.wpilibj.Compressor;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Talon;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.DoubleSolenoid;
-import edu.wpi.first.wpilibj.networktables.NetworkTable;
-import edu.wpi.first.wpilibj.AnalogPotentiometer;
-import edu.wpi.first.wpilibj.Encoder;
-import edu.wpi.first.wpilibj.Compressor;
-import edu.wpi.first.wpilibj.Ultrasonic;
-import edu.wpi.first.wpilibj.buttons.JoystickButton;
 import edu.wpi.first.wpilibj.buttons.Button;
+import edu.wpi.first.wpilibj.buttons.JoystickButton;
+import edu.wpi.first.wpilibj.image.BinaryImage;
+import edu.wpi.first.wpilibj.image.ColorImage;
+import edu.wpi.first.wpilibj.image.NIVisionException;
+import edu.wpi.first.wpilibj.networktables.NetworkTable;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.vision.AxisCamera;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.image.ParticleAnalysisReport;
+import edu.wpi.first.wpilibj.Encoder;
+
+public class Robot extends IterativeRobot {  
+	 
+	//DECLARATIONS FOR JOYSTICKS, CHECK LAPTOP FOR PORT CORRELATION 
+	private final Joystick lStick = new Joystick(0);//LEFT JOYSTICK GOES IN USB PORT 0
+	private final Joystick rStick = new Joystick(1);//RIGHT JOYSTICK GOES IN USB PORT 1
+	private final Joystick fireCon = new Joystick(2);//FIRE CONTROLLER GOES IN USB PORT 2
+ 	 
+ 	private Compressor viceroyPumpy = new Compressor(1);//DECLARATION FOR THE COMPRESSOR, OUT OF RELAY 1, PORT FOR PRESSURE SENSOR UNKNOWN 
+ 	
+ 	private Button strafeLeft = new JoystickButton(lStick,2);//JOYSTICK BUTTON 2 ON THE LEFT JOYSTICK
+ 	private Button strafeRight = new JoystickButton(rStick,2);//JOYSTICK BUTTON 2 ON THE RIGHT JOYSTICK
+ 	
+ 	public OmniTankDrive driveTrain = new OmniTankDrive(0,1,2);//DECLARATION FOR THE OMNITANKDRIVE DRIVETRAIN
+ 	/*CLASS CONTAINS METHODS FOR DIFFERENT STYLES OF DRIVING, AND METHODS FOR MANIPULATING THE DRIVETRAIN IN SPECIFIC WAYS
+ 	 * 
+ 	 * WHEN VARIABLE REFERED TO A DOUBLE FOR A MOTOR THE VALUE MUST BE BETWEEN -1.0 AND 1.0
+ 	 * 
+ 	 * THE DECLEARATION PARAMETERS FOR THE OBJECT(LEFT SIDE TALONS PORT, RIGHT SIDE TALONS PORT, MIDDLE TALON PORT)
+ 	 * 
+ 	 * DRIVE STYLES INCLUDE THE FOLLOWING WITH PROPER SYNTAX:
+ 	 * 
+ 	 * driveTrain.singleControllerAxisDrive(rStick.getY(), rStick.getX(),lStick.getY());
+ 	 * 		TANKDRIVE ON ONE CONTROLLER, STRAFE ON THE OTHER CONTROLLER
+ 	 * 
+ 	 * driveTrain.standardDrive(lStick.getY(), rStick.getY(), strafeLeft.get(), strafeRight.get());
+ 	 * 		RAW CONTROLLER VALUES FOR STANDARD TANK DRIVE, USES SINGLE SPEED AND BUTTONS FOR STRAFING, STRAFESPEED CAN BE CHANGED- SEE BELOW DRIVE METHODS
+ 	 * 
+ 	 * driveTrain.axisDrive(lStick.getY(), rStick.getY(), rStick.getX());
+ 	 * 		RAW CONTROLLER VALUES FOR STANDARD TANK DRIVE, USES X AXIS OF ONE CONTROLLER FOR SPEED OF STRAFE WHEEL- HAS 20% TOLERANCE RANGE FOR ACTIVATION
+ 	 * 
+ 	 * driveTrain. standardTankAccelerationStrafeDrive(lStick.getY() , rStick.getY() , strafeLeft.get(), strafeRight.get());
+ 	 * 		STANDARD TANK DRIVE- CONTROLLER VALUES * SPEEDMOD, USES ACCELERATING SPEED AND BUTTONS FOR STRAFING
+ 	 * 
+ 	 * driveTrain.rawAxisDrive(lStick.getY(), rStick.getY(), rStick.getX());
+ 	 * 		RAW CONTROLLER VALUES FOR STANDARD TANK DRIVE, USES RAW CONTROLLER VALUE FOR STRAFEING
+ 	 * 
+ 	 * METHODS THAT ARE NOT DRIVING STYLES WITH PROPER SYNTAX:
+ 	 * 
+ 	 * driveTrain.increaseStrafeAccelerationModifier();
+ 	 * 		WILL INCREASE THE STRAFE ACCELERATION MODIFIER BY .01
+ 	 * 
+ 	 * driveTrain.decreaseStrafeAccelerationModifier();
+ 	 * 		WILL DECREASE THE STRAFE ACCELERATION MODIFIER BY .01
+ 	 * 
+ 	 * driveTrain.resetStrafeAccelerationModifier();
+ 	 * 		WILL RESET THE STRAFE ACCELERATION MODIFIER TO 0
+ 	 * 
+ 	 * driveTrain.setStrafeSpeed(double x);
+ 	 * 		SETS THE STRAFESPEED VARIABLE TO X, STRAFESPEED VARIABLE USED IN ONLY A FEW DRIVETRAIN METHODS
+ 	 * 
+ 	 * driveTrain.pointSevenFiveSpeed();
+ 	 * 		SETS THE TANKDRIVE SPEEDMOD VARIABLE TO 3/4 SPEED
+ 	 * 
+ 	 * driveTrain.halfSpeed();
+ 	 * 		SETS THE TANKDRIVE SPEEDMOD VARIABLE TO 1/2 SPEED
+ 	 * 
+ 	 * driveTrain.quarterSpeed();
+ 	 * 		SETS THE TANKDRIVE SPEEDMOD VARIABLE TO 1/4 SPEED
+ 	 * 
+ 	 * driveTrain.fullSpeed();
+ 	 * 		SETS THE TANKDRIVE SPEEMOD VARIABLE TO 1/1 SPEED
+ 	 * 
+ 	 * driveTrain.driveMiddle(double MSP);
+ 	 * 		SETS THE MIDDLE WHEEL TO THE VALUE OF MSP
+ 	 * 
+ 	 * driveTrain.driveLeftSide(double LSP);
+ 	 * 		SETS THE LEFT SIDE OF THE DRIVETRAIN TO THE VALUE OF LSP
+ 	 * 
+ 	 * driveTrain.driveRightSide(double RSP);
+ 	 * 		SETS THE RIGHT SIDE OF THE DRIVETRAIN TO THE VALUE OF RSP
+ 	 * 
+ 	*/
+ 	public ElevatorCarriage liftSystem = new ElevatorCarriage(1,2,3,4,5,6);//DECLARATION FOR THE ELEVATORCARRIAGE LIFTSYSTEM
+ 	/*CLASS INCLUDES ALL METHODS REQUIRED TO OPERATE THE CARRIAGE, AS WELL AS DECLARATIONS FOR 3 DOUBLESOLENOIDS REQUIRED TO OPERATE
+ 	 * 
+ 	 * FOR DECLARATION PARAMTERS DESCRIPTION   DS = DOUBLESOLENOID
+ 	 * DECLARATION PARAMETERS FOR THE OBJECT(DS 1 PORT 1, DS 1 PORT 2, DS 2 PORT 1, DS 2 PORT 2, DS 3 PORT 1 DS 3 PORT 2)
+ 	 * 
+ 	 * METHODS FOR THE LIFT SYSTEM ARE AS FOLLOWS WITH PROPER SYNTAX:
+ 	 * 
+ 	 * liftSystem.raiseCarriage();
+ 	 * 		RAISES THE CARRIAGE WITHOUT PICKING UP OR DROPPING ANY TOTES OR CANS
+ 	 * 
+ 	 * liftSystem.lowerCarriage();
+ 	 * 		LOWERS THE CARRIAGE WITHOUT PICKING UP OR DROPPING ANY TOTES OR CANS
+ 	 * 
+ 	 * liftSystem.getTote();
+ 	 * 		WILL ONLY GAIN POSSESION OF THE TOTE
+ 	 * 
+ 	 * liftSystem.releaseTote();
+ 	 * 		WILL ONLY RELEASE POSSESION OF THE TOTE
+ 	 * 
+ 	 * liftSystem.getCan();
+ 	 * 		WILL ONLY GAIN POSSESION OF THE CAN
+ 	 * 
+ 	 * liftSystem.releaseCan();
+ 	 * 		WILL ONLY RELEASE POSSESION OF THE CAN
+ 	 * 
+ 	 * liftSystem.actuateCanPickup();
+ 	 * 		WILL LOWER CARRIAGE, GAIN POSSESION OF THE CAN, AND RAISE CARRIAGE
+ 	 * 
+ 	 * liftSystem.actuateTotePickup();
+ 	 * 		WILL RELEASE POSSESION OF TOTE, LOWER CARRIAGE, GAIN POSSESION OF TOTE, AND THEN RAISE CARRIAGE
+ 	 * 
+ 	 * liftSystem.releaseStack();
+ 	 * 		WILL LOWER THE CARRIAGE, WAIT 1 SECOND, THEN RELEASES POSSESION OF THE TOTE AND CAN
+ 	 * 
+ 	*/
+     public void robotInit() {//CODE THAT IS EXECUTED WHEN THE ROBOT IS ENABLED IN ANY MODE, EXECUTED ONCE
+     	viceroyPumpy.start();//START THE COMPRESSOR TO PUMP AIR
+     }//END ROBOT INIT 
+ 
+ 
+     public void autonomousPeriodic()//CODE THAT IS EXECUTED OVER AND OVER DURING THE AUTONOMOUS PERIOD
+     { 
+     }//END AUTONOMOUS PERIODIC 
+      
+     public void autonomousInit()//CODE THAT IS EXECUTED AT THE BEGINNING OF THE AUTONOMOUS PERIOD, EXECUTED ONCE
+     { 
+     	 if(!isAutonomous())
+     	 {
+     		 return;//IF IT IS AUTONOMOUS, EXECUTE RETURN TO END THE THREAD
+     	 }//CHECKING TO SEE IF AUTONOMOUS
+ 
+     	 Timer.delay(1);//DELAY THE THREAD FOR 1 SECOND
+
+     	 if(!isAutonomous())
+     	 {
+     		 return;//IF IT IS AUTONOMOUS, EXECUTE RETURN TO END THE THREAD
+     	 }//CHECKING TO SEE IF AUTONOMOUS
+     	 
+     }//END AUTONOMOUS INIT 
+ 
+ 
+     public void teleopPeriodic()//CODE THAT IS CONSTANTLY EXECUTED DURING THE TELEOPERATED PERIOD
+     { 
+    	 driveTrain.standardTankAccelerationStrafeDrive(lStick.getY(), rStick.getY(), strafeLeft.get(), strafeRight.get());
+    	 //EXECUTE OMNITANKDRIVE METHOD STANDARDTANKACCELERATIONSTRAFEDRIVE   GO TO DECLARATION FOR DETAILS ON METHOD
+     }//END TELEOP PERIODIC 
+      
+     public void testInit()//CODE THAT IS EXECUTED AT THE BEGINNING OF THE TEST MODE ONCE 
+     { 
+     	 
+     }//END TEST INIT 
+      
+     public void testPeriodic()//CODE THAT IS CONSTANTLY EXECUTED DURING THE TEST MODE
+     { 
+      
+     }//END TEST PERIODIC 
+    
+     public void disabledInit()//CODE THAT IS EXECUTED DURING THE START OF BEING DISABLED 
+     { 
+    	 //PUT ANY ACTIONS YOU WANT THE ROBOT TO EXECUTE AFTER THE MATCH IS OVER HERE
+     }//END DISABLED INIT 
+ } 
+ 
 
 
-public class Robot extends IterativeRobot {
-
-	private SmartDashboard display = new SmartDashboard();//DECLARATION FOR DISPLAY
-	private NetworkTable Kamerade = NetworkTable.getTable("SmartDashboard");
-	
-	private final Joystick lStick = new Joystick(0);//DECLARATIONS FOR JOYSTICKS, CHECK LAPTOP FOR PORT CORRELATION
-	private final Joystick rStick = new Joystick(1);
-	private final Joystick fireCon = new Joystick(2);
-	
-	private Talon l1 = new Talon(0);//DECLARATIONS FOR DRIVETRAIN TALONS, PARAMETER IS LOCATION ON THE ROBORIO FOR PWM PORTS
-	private Talon l2 = new Talon(1);
-	private Talon r1 = new Talon(2);
-	private Talon r2 = new Talon(3);
-	private Talon m1 = new Talon(4);
-	
-	private DoubleSolenoid DS1 = new DoubleSolenoid(1,2);//DECLARATION FOR THE DOUBLESOLENOIDS, 1ST IN PORTS 1 AND 2, 2ND IN PORTS 3 AND 4
-	private DoubleSolenoid DS2 = new DoubleSolenoid(3,4);
-	
-	private Compressor viceroyPumpy = new Compressor(1);//DECLARATION FOR THE COMPRESSOR, OUT OF RELAY 1
-	
-	private void tankDrive(double x, double y, double z)//BEGIN CUSTOM METHOD, TAKES 3 DOUBLES FOR PARAMETERS (LSTICK Y,RSTICK Y, LSTICK X)
-	{
-		l1.set(x);//SETS TALONS L1 AND L2 TO VALUE OF Y AXIS OF LSTICK
-		l2.set(x);
-		r1.set(y);//SETS TALONS R1 AND R2 TO VALUE OF Y AXIS OF RSTICK
-		r2.set(y);
-		if(lStick.getX()>.2 || lStick.getX()<-.2)//CHECKS TO SEE IF VALUE OF X AXIS OF LSTICK IS GREATER THAN THE 40% THRESHOLD, 20% BOTH WAYS
-		{
-			m1.set(z);//IF PAST THRESHOLD, SET MOTOR SPEED TO RAW VALUE OF X AXIS OF LSTICK
-		}
-		else// IF NOT PAST THE THRESHOLD, SET MOTOR SPEED TO 0 
-		{
-			m1.set(0);
-		}//END ELSE IF X AXIS THRESHOLD
-		
-	}//END TANKDRIVE METHOD
-	
-    public void robotInit() {
-    	viceroyPumpy.start();
-    }//END ROBOT INIT
-
-    public void autonomousPeriodic() {
-    }//END AUTONOMOUS PERIODIC
-    
-    public void autonomousInit()
-    {
-    	
-    }//END AUTONOMOUS INIT
-
-    public void teleopPeriodic() {
-        tankDrive(lStick.getY(), rStick.getY(), lStick.getX());
-    }//END TELEOP PERIODIC
-    
-    public void testInit()
-    {
-    	
-    }//END TEST INIT
-    
-    public void testPeriodic() {
-    
-    }//END TEST PERIODIC
-    
-    public void disabledInit()
-    {
-    	
-    }//END DISABLED INIT
-}
+ 
+   
