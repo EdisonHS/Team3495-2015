@@ -1,148 +1,192 @@
 package org.usfirst.frc.team3495.robot;
-
+//IMPORTING PACKAGES NECESSARY FOR USE
 import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Timer;
 
-public class OmniTankDrive {
+public class OmniTankDrive {//BEGIN OBJECT CLASS OMNI TANK DRIVE
 
-	private int leftSideTalonPort;
-	private int rightSideTalonPort;
-	private int middleSideTalonPort;
-	private double driveAccelerationModifier = 0;
-	private double strafeAccelerationModifier = 0;
-	private double strafeSpeed = 1;
+	private int leftSideTalonPort;//PLACEHOLDER INT FOR LEFT SIDE TALON PORT
+	private int rightSideTalonPort;//PLACEHOLDER INT FOR RIGHT SIDE TALON PORT
+	private int middleSideTalonPort;//PLACEHOLDER INT FOR MIDDLE WHEEL TALON PORT
+	private double strafeAccelerationModifier = 0;//DOUBLE FOR STRAFE ACCELERATION MODIFIER USED IN STRAFE ACCELERATION METHODS
+	private double strafeSpeed = 1;//DOUBLE FOR HOLDING THE STRAFE SPEED
 	
-	public OmniTankDrive(int pwmT1_2, int pwmT3_4, int pwmT5)
+	private double speedMod = 1;//DOUBLE FOR HOLDING THE STANDARD SPEEDMOD
+	
+	public OmniTankDrive(int pwmT1_2, int pwmT3_4, int pwmT5)//CONSTRUCTION METHOD, TAKING 3 INT INPUTS TO REPRESENT THE PORTS FOR THE TALONS 
 	{
-		leftSideTalonPort = pwmT1_2;
-		rightSideTalonPort = pwmT3_4;
-		middleSideTalonPort = pwmT5;
+		leftSideTalonPort = pwmT1_2;//SETTING LEFT SIDE TALON PORT PLACEHOLDER TO USER INPUT AT PARAMETER 1
+		rightSideTalonPort = pwmT3_4;//SETTING RIGHT SIDE TALON PORT PLACEHOLDER TO USER INPUT AT PARAMETER 2
+		middleSideTalonPort = pwmT5;//SETTING MIDDLE WHELL PLACEHOLDER TO USER INPUT AT PARAMTER 3
 	}//END OBJECT TANKOMNIDRIVE
 	
-	public Talon l1_2 = new Talon(leftSideTalonPort);
-	public Talon r3_4 = new Talon(rightSideTalonPort);
-	public Talon m1 = new Talon(middleSideTalonPort);
+	public Talon l1_2 = new Talon(leftSideTalonPort);//DECLARING LEFT SIDE TALONS USING USER INPUT FOR THE PORT
+	public Talon r3_4 = new Talon(rightSideTalonPort);//DECLARING RIGHT SIDE TALONS USING USER INPUT FOR THE PORT
+	public Talon m1 = new Talon(middleSideTalonPort);//DECLARING THE MIDDLE WHEEL TALON USING USER INPUT FOR THE PORT
 	
-	public void accelerationDrive(double LSP, double RSP, boolean sLeft, boolean sRight)
+	public void driveLeftSide(double LSP)//METHOD FOR SETTING THE LEFT SIDE OF THE DRIVETRAIN TO THE USER INPUT
 	{
-		if(LSP >= .5 || LSP <= -.5)
-		{
-			l1_2.set(LSP * driveAccelerationModifier);
-			Timer.delay(.01);
-			increaseDriveAccelerationModifier();
-		}
-		else if(LSP < .5 || LSP >-.5)
-		{
-			l1_2.set(LSP);
-			Timer.delay(.001);
-			decreaseDriveAccelerationModifier();
-		}//END LEFT SIDE THRESHOLD ACCELERATION IF STATEMENT
-		
-		if(RSP >= .5 || RSP <= -.5)
-		{
-			r3_4.set(-RSP * driveAccelerationModifier);
-			increaseDriveAccelerationModifier();
-		}
-		else if(RSP < .5 || RSP > -.5)
-		{
-			r3_4.set(-RSP);
-			Timer.delay(.001);
-			decreaseDriveAccelerationModifier();
-		}//END RIGHT SIDE THRESHOLD ACCELERATION IF STATEMENT
-		
-		if(sLeft && !sRight)
-		{
-			m1.set(strafeSpeed * strafeAccelerationModifier);
-			Timer.delay(.01);
-			increaseStrafeAccelerationModifier();
-		}
-		else if(sRight && !sLeft)
-		{
-			m1.set(-strafeSpeed * strafeAccelerationModifier);
-			Timer.delay(.01);
-			increaseStrafeAccelerationModifier();
-		}
-		else
-		{
-			m1.set(0);
-			Timer.delay(.001);
-			decreaseStrafeAccelerationModifier();
-		}//END MIDDLESIDE
-	}//END MAIN DRIVE METHOD
-	
-	public void driveLeftSide(double LSP)
-	{
-		l1_2.set(LSP);
+		l1_2.set(LSP);//USING THE USER INPUT TO SET THE MOTORS SPEED
 	}//END METHOD DRIVE LEFT SIDE
 	
-	public void driveRightSide(double RSP)
+	public void driveRightSide(double RSP)//METHOD FOR SETTING THE RIGHT SIDE OF THE DRIVETRAIN TO THE USER INPUT
 	{
-		r3_4.set(RSP);
+		r3_4.set(RSP);//USING THE USER INPUT TO SET THE MOTORS SPEED
 	}//END METHOD DRIVE RIGHT SIDE
 
-	public void driveMiddle(double MSP)
+	public void driveMiddle(double MSP)//METHOD FOR SETTING THE RIGHT SIDE OF THE DRIVETRAIN TO THE USERS INPUT
 	{
-		m1.set(MSP);
+		m1.set(MSP);//USING THE USER INPUT TO SET THE MOTORS SPEED
 	}//END METHOD DRIVE MIDDLE
 	
-	public void standardDrive(double LSP, double RSP, boolean sL, boolean sR, double sSM)
+	public void singleControllerAxisDrive(double DSP, double subtractionModifier, double MSP)//DRIVE METHOD USING ONE CONTROLLER TO CONTROL STANDARD TANK DRIVE
+	//WHILE USING THE OTHER CONTROLLER TO CONTROL THE STRAFFING SPEED
 	{
-		l1_2.set(LSP);
-		r3_4.set(RSP);
-		if(sL && !sR)
+		if(DSP > 0)//IF THE DRIVING SPEED, USUALLY VALUE OF Y AXIS, IS POSITIVE
 		{
-			m1.set(sSM);
+			if(subtractionModifier > 0)//AND IF THE SUBTRACTION MODIFIER, USUALLY X AXIS OF SAME CONTROLLER, IS POSITIVE  PULLED TO THE RIGHT
+			{
+				l1_2.set(-DSP);//SET THE LEFT SIDE OF THE DRIVETRAIN TO THE VALUE OF THE Y AXIS
+				r3_4.set(DSP - subtractionModifier);//SET THE RIGHT SIDE OF THE DRIVETRAIN THE THE VALUE OF THE Y AXIS MINUS THE VALUE OF THE X AXIS
+			}
+			else if(subtractionModifier < 0)//OR IF THE SUBTRACTIONMODIFIER, USUALLY THE X AXIS OF THE SAME CONTROLLER, IS NEGATIVE
+			{
+				l1_2.set(-DSP - subtractionModifier);//SET THE LEFT SIDE OF THE DRIVETRAIN TO THE VALUE OF THE Y AXIS MINUS THE VALUE OF THE X AXIS
+				r3_4.set(DSP);//SET THE RIGHT SIDE OF THE DRIVETRAIN TO THE VALUE OF THE Y AXIS
+			}//END DIRECTION MODIFYING IF ELSE
 		}
-		else if(sR && !sL)
+		else if(DSP < 0)//OR IF THE DRIVING SPEED, USUALLY THE VALUE OF THE Y AXIS,  IS NEGATIVE,  DRIVING REVERSE
 		{
-			m1.set(-sSM);
+			if(subtractionModifier < 0)//AND IF THE SUBTRACTIONMODIFIER, USUALLY THE X AXIS OF THE SAME CONTROLLER, IS NEGATIVE
+			{
+				l1_2.set(-DSP + subtractionModifier);//SET THE LEFT SIDE OF THE DRIVETRAIN THE THE VALUE OF THE Y AXIS PLUS THE VALUE OF THE X AXIS
+				r3_4.set(DSP);//SET THE RIGHT SIDE OF THE DRIVETRAIN TO THE VALUE OF THE Y AXIS
+			}
+			else if(subtractionModifier > 0)//OR IF THE SUBTRACTIONMODIFIER, USUALLY THE X AXIS OF THE SAME CONTROLLER, IS POSITIVE
+			{
+				l1_2.set(-DSP);//SET THE LEFT SIDE OF THE DRIVETRAIN TO THE VALUE OF THE Y AXIS
+				r3_4.set(DSP + subtractionModifier);//SET THE RIGHT SIDE OF THE DRIVETRAIN TO THE VALUE OF THE Y AXIS PLUS THE VALUE OF THE X AXIS
+			}//END DIRECTION MODIFYING IF ELSE
 		}
-		else
+		else//WHEN THE VALUE OF THE Y AXIS IS 0
 		{
-			m1.set(0);
+			l1_2.set(0);//SET BOTH THE LEFT AND RIGHT SIDE OF THE DRIVETRAIN TO 0 SPEED
+			r3_4.set(0);
+		}//END IF DIRECTION DETECTOR AND MODIFIER
+		
+	}//END SINGLE CONTROLLER AXIS DRIVE  WHICH USES ONE CONTROLLER FOR DRIVING THE ROBOT NORMALLY, AND USES THE OTHER CONTROLLER FOR STRAFING
+	
+	public void standardDrive(double LSP, double RSP, boolean sL, boolean sR)//DRIVE METHOD STANDARD TANK DRIVE 
+	//USING TWO BUTTONS TO CONTROL STRAFING
+	//PARAMTER VALUES   (lStick.getY(), rStick.getY, buttonToStrafeLeft.get(), buttonToStrafeRight.get())
+	{
+		l1_2.set(-LSP);//SET THE LEFT SIDE OF THE DRIVETRAIN TO PARAMETER 1, THE Y AXIS VALUE OF THE LEFT JOYSTICK
+		r3_4.set(RSP);//SET THE RIGHT SIDE OF THE DRIVETRAIN TO PARAMETER 2, THE Y AXIS VALUE OF THE RIGHT JOYSTICK
+		if(sL && !sR)//IF THE STRAFE LEFT BUTTON IS PRESSED AND THE STRAFE RIGHT BUTTON IS NOT PRESSED
+		{
+			m1.set(strafeSpeed);//SET THE STRAFE TALON TO DOUBLE VARIABLE STRAFESPEED  DECLARED EARLIER IN THE CLASS
+		}
+		else if(sR && !sL)//IF STRAFE RIGHT BUTTON IS PRESSED AND THE STRAFE LEFT BUTTON IS NOT PRESSED
+		{
+			m1.set(-strafeSpeed);//SET THE STRAFE TALON TO THE OPPOSITE OF THE VALUE OF STRAFESPEED
+		}
+		else//WHEN NEITHER BUTTON IS BEING PRESSED
+		{
+			m1.set(0);//SET THE STRAFE TALON TO 0
 		}//END STRAFING WHEEL SETTING
 	}//END METHOD STANDARD DRIVE, DRIVING WITHOUT ANY ACCELERATION, BUT RAW VALUES SPEED MOD FOR STRAFE CIM
 	
-	public void axisDrive(double LSP, double RSP, double MSP)
+	public void axisDrive(double LSP, double RSP, double MSP)//DRIVE METHOD STANDARD TANK DRIVE
+	//USING THE X AXIS OF ONE OF THE CONTROLLERS TO CONTROL THE STRAFE SPEED, NOT USING THE STRAFE SPEED VARIABLE
+	//PARAMETERS OF METHOD  (lStick.getY(), rStick.getY(), EITHER lStick.getX() OR rStick.getX())
 	{
-		l1_2.set(LSP);
-		r3_4.set(RSP);
-		if(MSP> .1){m1.set(MSP);}else{m1.set(0);}//END IF DECIDING TOLERANCE LEVEL
+		l1_2.set(-LSP);//SET THE LEFT SIDE OF THE DRIVETRAIN TO THE Y AXIS OF THE LEFT JOYSTICK
+		r3_4.set(RSP);//SET THE RIGHT SIDE OF THE DRIVETRAIN TOE THE Y AXIS OF THE RIGHT JOYSTICK
+		if(MSP> .1 || MSP < -.1){m1.set(MSP);}else{m1.set(0);}//CHECKS FOR X AXIS VALUE PAST 10% DISTANCE TOLERANCE RANGE
+		//AND IF PAST TOLERANCE RANGE SET THE STRAFE TALON TO VALUE OF THAT JOYSTICKS X AXIS
 	}//END METHOD AXIS DRIVE, USING THE RAW VALUE OF THE CONTROLLER AXIS FOR ALL MOTORS 
-	
-	public void increaseDriveAccelerationModifier()
+
+	public void standardTankAccelerationStrafeDrive(double LSP , double RSP , boolean sL, boolean sR )//DRIVE METHOD STANDARD TANK DRIVE WITH SPEEDMOD
+	//USING BUTTONS TO CONTROL WHICH WAY THE STRAFE TALON ACCELERATES
+	//METHOD PARAMETERS  (lStick.getY(), rStick.getY(), buttonToStrafeLeft.get(), buttonToStrafeRight.get()) 
 	{
-		if(driveAccelerationModifier < 1){driveAccelerationModifier += .01;}
-	}//END METHOD INCREASING THE DRIVING ACCELERATION MODIFIER
+		l1_2.set(-LSP * speedMod);//SET LEFT SIDE OF DRIVETRAIN TO VALUE OF LEFT JOYSTICK Y AXIS MULTIPLIED BY THE SPEEDMOD
+		r3_4.set(RSP * speedMod);//SET RIGHT SIDE OF DRIVETRAIN TO VALUE OF RIGHT JOYSTICK Y AXIS MULTIPLIED BY THE SPEEDMOD
+		m1.set(strafeAccelerationModifier);//SET STRAFE TALON TO THE VALUE OF THE STRAFE ACCELERATION MODIFIER VARIABLE
+		if(sL && !sR && strafeAccelerationModifier > -speedMod)//IF THE STRAFE LEFT BUTTON IS PRESSED AND THE STRAFE RIGHT BUTTON IS NOT BEING PRESSED 
+		//AND THE STRAFE ACCELERATION MODIFIER IS GREATER THAN THE NEGATIVE VALUE OF THE SPEEDMOD	
+		{
+			decreaseStrafeAccelerationModifier();//DECREASE THE STARAFE ACCELERATION MODIFIER BY 1%
+			Timer.delay(.2);//DELAY THREAD FOR .2 SECONDS
+		}
+		else if(sR && !sL && strafeAccelerationModifier < speedMod)//IF THE STRAFE RIGHT BUTTON IS BEING PRESSED AND THE STRAFE LEFT BUTTON IS NOT BEING PRESSED
+			//AND THE STRAFE ACCELERATION MODIFIER IS LESS THAN THE SPEEDMOD
+		{
+			increaseStrafeAccelerationModifier();//INCREASE THE STRAFE ACCELERATION MODIFIER BY 1%
+			Timer.delay(.2);//DELAY THREAD FOR .2 SECONDS
+		}
+		else//IF NEITHER BUTTON IS PRESSED
+		{
+			if(strafeAccelerationModifier > 0 )//IF THE STRAFE ACCELERATION MODIFIER IS HIGHER THAN 0
+			{
+				decreaseStrafeAccelerationModifier();//DECREASE THE STRAFE ACCELERATION MODIFIER BY 1%
+				Timer.delay(.1);//DELAY THE THREAD FOR .1 SECONDS
+			}
+			else if(strafeAccelerationModifier < 0 )//IF THE STRAFE ACCELERATION MODIFIER IS LOWER THAN 0
+			{
+				increaseStrafeAccelerationModifier();//INCREASE THE STRAFE ACCELERATION MODIFIER BY 1%
+				Timer.delay(.1);//DELAY THREAD FOR .1 SECONDS
+			}//END THRESHOLD IF
+		}
+	}//END METHOD STANDARD TANK DRIVE WITH ACCELERATION FOR THE STRAFING WHEEL
 	
-	public void decreaseDriveAccelerationModifier()
+	public void rawAxisDrive(double LSP, double RSP, double MSP)//DRIVE METHOD  STANDARD TANK DRIVE WITHOUT SPEEDMOD
+	//AND STRAFING WITH X AXIS VALUE WITHOUT A THRESHOLD 
+	//METHOD PARAMETERS  (lStick.getY(), rStick.getY(), either rStick.getX() or lStick.getX())
 	{
-		if(driveAccelerationModifier > 0){driveAccelerationModifier -= .01;}
-	}//END METHOD DECREASING THE DRIVING ACCELERATION MODIFIER
+		l1_2.set(-LSP);//SET THE LEFT SIDE DRIVETRAIN TO THE VALUE OF THE LEFT JOYSTICK Y AXIS
+		r3_4.set(RSP);//SET THE RIGHT SIDE DRIVETRAIN TO THE VALUE OF THE RIGHT JOYSTICK Y AXIS
+		m1.set(MSP);// SET THE STRAFE TALON TO THE VALUE OF THE X AXIS OF WHICHEVER CONTROLLER YOU PUT IN THE PARAMTERS
+	}//END RAW AXIS DRIVE METHOD  WHICH TAKES THE RAW VALUES OF THE CONTROLERS FOR VALUES FOR DRIVING
 	
-	public void resetDriveAccelerationModifier()
+	public void increaseStrafeAccelerationModifier()//MANIPULATION METHOD  INCREASES THE STRAFE ACCELERATION MODIFIER BY .01
 	{
-		driveAccelerationModifier = 0;
-	}//END METHOD RESETING THE ACCELERATION MODIFIER
-	
-	public void increaseStrafeAccelerationModifier()
-	{
-		if(strafeAccelerationModifier < 1){strafeAccelerationModifier += .01;}
+		if(strafeAccelerationModifier < 1){strafeAccelerationModifier += .01;}//CHECKS IF THE STRAFE ACCELERATION MODIFIER IS LESS THAN THE HIGHEST POSSIBLE VALUE
 	}//END METHOD INCREASING THE STRAFING ACCELERATION MODIFIER
 	
-	public void decreaseStrafeAccelerationModifier()
+	public void decreaseStrafeAccelerationModifier()//MANIPLUATION METHOD  DECREASES THE STRAFE ACCELERATION MODIFIER BY .01
 	{
-		if(strafeAccelerationModifier > 0){strafeAccelerationModifier -= .01;}
+		if(strafeAccelerationModifier > -1){strafeAccelerationModifier -= .01;}//CHECKS IF THE STRAFE ACCELERATION MODIFIER IS GREATER THAN -1
 	}//END METHOD DECREASING THE STRAFING ACCELERATION MODIFIER
 	
-	public void resetStrafeAccelerationModifier()
+	public void resetStrafeAccelerationModifier()//MANIPULATION METHOD  RESETS THE STRAFE ACCELERATION SPEED TO 0
 	{
-		strafeAccelerationModifier = 0;
+		strafeAccelerationModifier = 0;//SETS THE STRAFE ACCELERATION MODIFIER VARIABLE TO 0
 	}//END METHOD RESETING THE STRAFING ACCELERATION MODIFIER
 	
-	public void setStrafeSpeed(double x)
+	public void setStrafeSpeed(double x)//MANIPULATION METHOD  SETS THE STRAFE SPEED VARIABLE TO USER INPUT   USED IN METHODS WITH NON IMMEDIATE DYNAMIC SPEED
 	{
-		strafeSpeed = x;
+		strafeSpeed = x;//SET STRAFE SPEED TO PARAMTER X
 	}//END METHOD SETTING STRAFING SPEED
+	
+	public void pointSevenFiveSpeed()//MANIPULATION METHOD  CHANGES THE SPEEDMOD TO .75
+	{
+		speedMod = .75;//SET VARIABLE SPEEDMOD TO .75
+	}//END THREE FOURTHS SPEED	
+	
+	public void halfSpeed()//MANIPULATION METHOD  CHANGES THE SPEEDMOD TO .5
+	{
+		speedMod = .5;//SET VARIABLE SPEEDMOD TO .5
+	}//END HALF SPEED
+	
+	public void quarterSpeed()//MANIPULATION METHOD  CHANGES SPEEDMOD TO .25
+	{
+		speedMod = .25;//SET VARIABLE SPEEDMOD TO .25
+	}//END QUARTER SPEED
+	
+	public void fullSpeed()//MANIPULATION METHOD  CHANGES SPEEDMOD TO 1
+	{
+		speedMod = 1;//SETS SPEEDMOD TO 1
+	}//END FULL SPEED
 	
 }
