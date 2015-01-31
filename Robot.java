@@ -9,14 +9,7 @@ import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.buttons.Button;
 import edu.wpi.first.wpilibj.buttons.JoystickButton;
-import edu.wpi.first.wpilibj.image.BinaryImage;
-import edu.wpi.first.wpilibj.image.ColorImage;
-import edu.wpi.first.wpilibj.image.NIVisionException;
-import edu.wpi.first.wpilibj.networktables.NetworkTable;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.vision.AxisCamera;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.image.ParticleAnalysisReport;
 import edu.wpi.first.wpilibj.Encoder;
 
 public class Robot extends IterativeRobot {  
@@ -30,13 +23,20 @@ public class Robot extends IterativeRobot {
  	
  	private Button strafeLeft = new JoystickButton(lStick,2);//JOYSTICK BUTTON 2 ON THE LEFT JOYSTICK
  	private Button strafeRight = new JoystickButton(rStick,2);//JOYSTICK BUTTON 2 ON THE RIGHT JOYSTICK
+ 	private Button pickUpTote = new JoystickButton(rStick,3);
+ 	private Button pickUpCan = new JoystickButton(rStick,1);
+ 	private Button dropStack = new JoystickButton(lStick,1);
+ 	private Button threeFourthsSpeed = new JoystickButton(lStick, 3);
+ 	private Button halfSpeed = new JoystickButton(lStick, 4);
+ 	private Button quarterSpeed = new JoystickButton(lStick,5);
+ 	private Button fullSpeed = new JoystickButton(lStick,6);
  	
- 	public OmniTankDrive driveTrain = new OmniTankDrive(0,1,2);//DECLARATION FOR THE OMNITANKDRIVE DRIVETRAIN
+ 	public OmniTankDrive driveTrain = new OmniTankDrive(0,1,2,3,4);//DECLARATION FOR THE OMNITANKDRIVE DRIVETRAIN
  	/*CLASS CONTAINS METHODS FOR DIFFERENT STYLES OF DRIVING, AND METHODS FOR MANIPULATING THE DRIVETRAIN IN SPECIFIC WAYS
  	 * 
  	 * WHEN VARIABLE REFERED TO A DOUBLE FOR A MOTOR THE VALUE MUST BE BETWEEN -1.0 AND 1.0
  	 * 
- 	 * THE DECLEARATION PARAMETERS FOR THE OBJECT(LEFT SIDE TALONS PORT, RIGHT SIDE TALONS PORT, MIDDLE TALON PORT)
+ 	 * THE DECLEARATION PARAMETERS FOR THE OBJECT(LEFT SIDE TALON 1 PORT, LEFT SIDE TALON 2 PORT, RIGHT SIDE TALON 1 PORT, RIGHT SIDE TALON 2 PORT, MIDDLE TALON PORT)
  	 * 
  	 * DRIVE STYLES INCLUDE THE FOLLOWING WITH PROPER SYNTAX:
  	 * 
@@ -91,7 +91,7 @@ public class Robot extends IterativeRobot {
  	 * 		SETS THE RIGHT SIDE OF THE DRIVETRAIN TO THE VALUE OF RSP
  	 * 
  	*/
- 	public ElevatorCarriage liftSystem = new ElevatorCarriage(1,2,3,4,5,6);//DECLARATION FOR THE ELEVATORCARRIAGE LIFTSYSTEM
+ 	public ElevatorCarriage liftSystem = new ElevatorCarriage(0,1,2,3,4,5);//DECLARATION FOR THE ELEVATORCARRIAGE LIFTSYSTEM
  	/*CLASS INCLUDES ALL METHODS REQUIRED TO OPERATE THE CARRIAGE, AS WELL AS DECLARATIONS FOR 3 DOUBLESOLENOIDS REQUIRED TO OPERATE
  	 * 
  	 * FOR DECLARATION PARAMTERS DESCRIPTION   DS = DOUBLESOLENOID
@@ -129,32 +129,57 @@ public class Robot extends IterativeRobot {
  	*/
      public void robotInit() {//CODE THAT IS EXECUTED WHEN THE ROBOT IS ENABLED IN ANY MODE, EXECUTED ONCE
      	viceroyPumpy.start();//START THE COMPRESSOR TO PUMP AIR
+     	liftSystem.lowerCarriage();//LOWER THE CARRAIGE AT THE BEGINNING OF ENABLING THE ROBOT
+     	liftSystem.releaseTote();//MAKE SURE THAT THE TOTE GRABBING PISTONS ARE NOT EXTENDED
      }//END ROBOT INIT 
- 
- 
+
      public void autonomousPeriodic()//CODE THAT IS EXECUTED OVER AND OVER DURING THE AUTONOMOUS PERIOD
      { 
      }//END AUTONOMOUS PERIODIC 
       
      public void autonomousInit()//CODE THAT IS EXECUTED AT THE BEGINNING OF THE AUTONOMOUS PERIOD, EXECUTED ONCE
      { 
-     	 if(!isAutonomous())
-     	 {
-     		 return;//IF IT IS AUTONOMOUS, EXECUTE RETURN TO END THE THREAD
-     	 }//CHECKING TO SEE IF AUTONOMOUS
- 
-     	 Timer.delay(1);//DELAY THE THREAD FOR 1 SECOND
-
-     	 if(!isAutonomous())
-     	 {
-     		 return;//IF IT IS AUTONOMOUS, EXECUTE RETURN TO END THE THREAD
-     	 }//CHECKING TO SEE IF AUTONOMOUS
      	 
      }//END AUTONOMOUS INIT 
  
  
      public void teleopPeriodic()//CODE THAT IS CONSTANTLY EXECUTED DURING THE TELEOPERATED PERIOD
      { 
+    	 if(pickUpCan.get())//IF BUTTON PICK UP CAN IS PRESSED05
+    	 {
+    		 liftSystem.actuateCanPickup();//CALLS COMAND ACTUATE CAN PICKUP PICKING UP THE CAN
+    	 }//END IF PICKUP CAN
+    	 
+    	 if(pickUpTote.get())//IF BUTTON PICK UP TOTE IS PRESSED
+    	 {
+    		 liftSystem.actuateTotePickup();//CALLS COMMAND ACTUATE TOTE PICKUP  TO PICKUP A TOTE 
+    	 }//END IF TOTE PICKUP
+    	 
+    	 if(dropStack.get())//IF BUTTON DROPSTACK IS PRESSED
+    	 {
+    		 liftSystem.releaseStack();//CALLS COMMAND RELEASE STACK TO RELEASE THE STACK
+    	 }//END IF DROP STACK
+    	 
+    	 if(threeFourthsSpeed.get())//IF BUTTON THREEFOURTHSPEED IS PRESSED
+    	 {
+    		 driveTrain.pointSevenFiveSpeed();//CALLS COMMAND POINT SEVEN FIVE SPEED TO SET SPEEDMOD TO .75
+    	 }//END IF SET SPEEDMOD TO .75
+    	 
+    	 if(quarterSpeed.get())//IF BUTTON QUARTER SPEED IS PRESSED
+    	 {
+    		 driveTrain.quarterSpeed();//CALLS COMMAND QUARTER SPEED TO SET SPEEDMOD TO .25
+    	 }//END IF SET SPEEDMOD TO .25
+    	 
+    	 if(halfSpeed.get())//IF BUTTON HALF SPEED IS PRESSED
+    	 {
+    		 driveTrain.halfSpeed();//CALLS COMMAND HALF SPEED TO SET SPEEDMOD TO HALF SPEED
+    	 }//END IF SET SPEEDMOD TO .5
+    	 
+    	 if(fullSpeed.get())//CHECKS TO SEE IF FULLSPEED BUTTON IS PRESSED
+    	 {
+    		 driveTrain.fullSpeed();//CALLS COMMAND FULLSPEED TO SET SPEEDMOD TO FULLSPEED
+    	 }//END SET SPEEDMOD TO 1
+    	 
     	 driveTrain.standardTankAccelerationStrafeDrive(lStick.getY(), rStick.getY(), strafeLeft.get(), strafeRight.get());
     	 //EXECUTE OMNITANKDRIVE METHOD STANDARDTANKACCELERATIONSTRAFEDRIVE   GO TO DECLARATION FOR DETAILS ON METHOD
      }//END TELEOP PERIODIC 
@@ -172,6 +197,11 @@ public class Robot extends IterativeRobot {
      public void disabledInit()//CODE THAT IS EXECUTED DURING THE START OF BEING DISABLED 
      { 
     	 //PUT ANY ACTIONS YOU WANT THE ROBOT TO EXECUTE AFTER THE MATCH IS OVER HERE
+    	 liftSystem.lowerCarriage();
+    	 Timer.delay(1);
+    	 liftSystem.releaseTote();
+    	 driveTrain.rawAxisDrive(0,0,0);
+    	 
      }//END DISABLED INIT 
  } 
  
